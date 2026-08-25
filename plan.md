@@ -76,7 +76,7 @@ tracks each phase. SQLite ships with Python — nothing to install for the datab
 **Tasks.**
 - [x] A1. Initialize repo + virtual environment; install `ultralytics`,
   `opencv-python`, `numpy`, `matplotlib`; confirm imports.
-- [ ] A2. Create the skeleton (see Relevant files) and a `.gitignore` for `venv/`,
+- [x] A2. Create the skeleton (see Relevant files) and a `.gitignore` for `venv/`,
   `data/`, `outputs/`, `__pycache__/`, `*.pt`, `*.db`.
 - [ ] A3. README bootstrap: setup, run-command placeholders, expected outputs.
 - [ ] A4. Put one road video in `data/`; note the filename convention in the README.
