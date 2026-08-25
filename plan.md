@@ -6,28 +6,6 @@ using a YOLO detector, HSV color analysis, SQLite storage, and Matplotlib report
 **Stack:** Python, OpenCV, Ultralytics YOLO, PyTorch, NumPy, SQLite, Matplotlib,
 Git/GitHub
 
----
-
-## How to use this plan
-
-Every phase has:
-
-- **Concept** — what this piece is and *why* it works this way. Read it before
-  building. This is the learning; it also lets you judge whether AI-generated code is
-  actually correct instead of trusting it blindly.
-- **Tasks** — checkbox steps (`[ ]` → `[x]`) you can tick off in a VS Code Markdown
-  preview.
-- **Verify** — a concrete check that the phase actually works before you move on.
-
-Workflow: read the Concept yourself → build the tasks (write it, or have an AI help
-against the concept) → run the Verify check → tick the boxes → commit. Work **one
-phase at a time**; don't hand an assistant the whole document at once or the pieces
-drift and stop fitting.
-
-**Dependency order** is noted per phase — don't start a phase whose prerequisites
-aren't ticked.
-
----
 
 ## Scope choices (decide before you start)
 
@@ -96,7 +74,7 @@ outputs/    annotated video, plots (git-ignored)
 tracks each phase. SQLite ships with Python — nothing to install for the database.
 
 **Tasks.**
-- [ ] A1. Initialize repo + virtual environment; install `ultralytics`,
+- [x] A1. Initialize repo + virtual environment; install `ultralytics`,
   `opencv-python`, `numpy`, `matplotlib`; confirm imports.
 - [ ] A2. Create the skeleton (see Relevant files) and a `.gitignore` for `venv/`,
   `data/`, `outputs/`, `__pycache__/`, `*.pt`, `*.db`.
