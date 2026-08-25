@@ -85,7 +85,7 @@ tracks each phase.
 - [x] A2. Create the skeleton (see Relevant files) and a `.gitignore` for `venv/`,
   `data/`, `outputs/`, `__pycache__/`, `*.pt`, `*.csv`.
 - [x] A3. README bootstrap: setup, run-command placeholders, expected outputs.
-- [ ] A4. Download the **LISA Traffic Light Dataset** (search "LISA traffic light
+- [x] A4. Download the **LISA Traffic Light Dataset** (search "LISA traffic light
   Kaggle") into `data/`; note the folder layout in the README. It arrives as labeled
   image frames — exactly what you want.
 

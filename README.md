@@ -61,8 +61,39 @@ Running the pipeline will produce:
 
 ## Data
 
-The **LISA Traffic Light Dataset** goes in `data/` (git-ignored). Folder layout:
-*(to be documented in Phase A4 once the dataset is downloaded).*
+The **[LISA Traffic Light Dataset](https://www.kaggle.com/datasets/mbornoe/lisa-traffic-light-dataset)**
+(Kaggle, ~5GB extracted) goes in `data/lisa/` (git-ignored, not committed).
+
+Extracted layout (each top-level folder has one redundant nested copy of itself,
+e.g. `dayTrain/dayTrain/...` — a quirk of this Kaggle mirror, not a mistake):
+
+```
+data/lisa/
+  dayTrain/dayTrain/dayClip<N>/frames/dayClip<N>--<frame>.jpg      training clips, day
+  nightTrain/nightTrain/nightClip<N>/frames/...                    training clips, night
+  daySequence1/daySequence1/frames/...                             day test sequence
+  daySequence2/daySequence2/frames/...
+  nightSequence1/nightSequence1/frames/...                         night test sequence
+  nightSequence2/nightSequence2/frames/...
+  sample-dayClip6/, sample-nightClip1/                             small samples
+  Annotations/Annotations/<same clip/sequence names>/
+    frameAnnotationsBOX.csv     one row per annotated light box (ground truth)
+    frameAnnotationsBULB.csv    per-bulb annotations (finer-grained, not used here)
+```
+
+`frameAnnotationsBOX.csv` is `;`-separated with a header row; the columns used by
+this project are `Filename`, `Annotation tag`, and the four box corners
+(`Upper left corner X/Y`, `Lower right corner X/Y`). `Annotation tag` values map to
+our 3 colors:
+
+| Tag(s) | Color |
+|---|---|
+| `go` | green |
+| `stop`, `stopLeft` | red |
+| `warning`, `warningLeft` | yellow |
+
+(`*Left` variants are directional arrow lights — still scored by color, direction is
+ignored.)
 
 ## Limitations & future work
 
