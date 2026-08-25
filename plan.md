@@ -1,25 +1,28 @@
-# Traffic Light Detection & Monitoring System — Build Plan
+# Traffic Light Detection & Color Classification — Build Plan
 
-Detect, track, and monitor traffic-light states (red/yellow/green) in road videos
-using a YOLO detector, HSV color analysis, SQLite storage, and Matplotlib reporting.
+Detect traffic lights in road **images** with a YOLO detector, classify each light's
+state (red / yellow / green) with HSV color analysis, and evaluate accuracy against
+the dataset's labels. Results are logged to CSV and summarized with Matplotlib.
 
-**Stack:** Python, OpenCV, Ultralytics YOLO, PyTorch, NumPy, SQLite, Matplotlib,
+**Stack:** Python, OpenCV, Ultralytics YOLO, PyTorch, NumPy, CSV, Matplotlib,
 Git/GitHub
 
+*Image-based by design: no video, no tracking, no durations — so there are no
+footage-sourcing headaches and you can measure real accuracy against labeled data.*
+
+---
 
 ## Scope choices (decide before you start)
 
-Two parts of this plan are *rigor upgrades* — great for a portfolio, but extra work
-that isn't computer vision. Pick now so scope doesn't balloon silently:
+Two parts are *rigor upgrades* — nice for a portfolio, but extra work that isn't
+computer vision. Pick now so scope doesn't balloon silently:
 
-- **Layout.** Simple: flat modules in `src/` (easier to read and explain, fine for a
-  course). Rigorous: a `src/traffic_light_monitor/` package with `__init__.py`
-  (cleaner imports, more "real project", more packaging friction). This plan lists
-  the package layout; drop the package folder and keep the files flat if you chose
-  simple.
-- **Tests.** A `tests/` suite is included as **optional**. If you have time, it
-  strengthens the project a lot. If time is tight, skip it and put the hours into the
-  CV and the error analysis instead.
+- **Layout.** Simple: flat modules in `src/` (easier to read and explain). Rigorous:
+  a `src/traffic_light_detector/` package with `__init__.py` (cleaner imports, more
+  packaging friction). This plan lists the flat layout; add the package folder only
+  if you want the "real project" signal.
+- **Tests.** A `tests/` suite is **optional**. Strengthens the project if you have
+  time; skip it in favor of the CV and error analysis if not.
 
 Everything else is core.
 
@@ -27,23 +30,26 @@ Everything else is core.
 
 ## The mental model (read once)
 
-One loop, plus a store, plus a report:
+For each image: **YOLO detects light boxes → crop each box → HSV decides its color →
+log `(image, box, color)`.** Then, because the dataset is labeled, compare your
+predictions to the ground truth and report accuracy. Detection, color, logging, and
+evaluation are separate problems, built one at a time.
 
-1. Take a frame → 2. YOLO detects light boxes → 3. tracker gives each a stable ID →
-4. crop each box → 5. decide its color → 6. save `(id, frame, color)` to the DB →
-7. repeat every frame → 8. collapse per-frame rows into durations → 9. stats + plots.
+## Two different "data" things — don't confuse them
 
-Detection, tracking, color, storage, analysis are separate problems, built one at a
-time.
+- **Training dataset (LISA):** labeled images used to *teach* YOLO (Phase E) and to
+  *score* your accuracy (Phase F). Input.
+- **Results CSV:** a file your program writes holding *your* predictions. Output,
+  used in Phases D, F, G.
 
-## Two different "databases" — don't confuse them
+## Why CSV, not a database?
 
-- **Training dataset (LISA / Bosch):** labeled images used *only* in Phase E to teach
-  YOLO. Input to training.
-- **SQLite database:** a file your program writes at runtime holding *your* results.
-  Output store, used in Phases D, F, G.
-
-You use both; they do unrelated jobs.
+The database in the old (video) plan existed to store thousands of per-frame rows so
+you could re-run analysis without re-processing the video. With images there's no
+per-frame explosion and no "slow video to avoid re-running" — a flat results table
+(`image, box, predicted_color`) is all you need, and a **CSV** covers it with far
+less machinery. You can swap in SQLite later if you specifically want it on your CV,
+but CSV is the right default here.
 
 ---
 
@@ -51,18 +57,18 @@ You use both; they do unrelated jobs.
 
 ```
 root: README.md, requirements.txt, .gitignore, plan.md
-src/traffic_light_monitor/   (or flat src/ if you chose simple layout)
-  __init__.py        (package layout only)
-  config.py          HSV ranges + tunable thresholds in one place
-  color.py           Phase B
-  detect_track.py    Phase C
-  db.py              Phase D
-  analyze.py         Phases F–G
-  main.py            Phase H
+src/
+  config.py        HSV ranges + tunable thresholds in one place
+  color.py         Phase B — classify_color(crop)
+  detect.py        Phase C — YOLO detection on images
+  pipeline.py      Phase D — run detect+color over the image set, write results CSV
+  evaluate.py      Phase F — accuracy vs labels
+  report.py        Phase G — stats + plots
+  main.py          Phase H — one-command entry point
 tools/convert_labels.py, configs/data.yaml   (Phase E, training)
-tests/test_color.py, test_db.py, test_analyze.py   (optional rigor)
-data/       input videos (git-ignored)
-outputs/    annotated video, plots (git-ignored)
+tests/test_color.py, test_evaluate.py         (optional rigor)
+data/       dataset images + labels (git-ignored)
+outputs/    results.csv, plots (git-ignored)
 ```
 
 ---
@@ -71,18 +77,20 @@ outputs/    annotated video, plots (git-ignored)
 *Blocks all later phases.*
 
 **Concept.** A clean repo and an isolated environment so packages don't clash and Git
-tracks each phase. SQLite ships with Python — nothing to install for the database.
+tracks each phase.
 
 **Tasks.**
 - [x] A1. Initialize repo + virtual environment; install `ultralytics`,
   `opencv-python`, `numpy`, `matplotlib`; confirm imports.
 - [x] A2. Create the skeleton (see Relevant files) and a `.gitignore` for `venv/`,
-  `data/`, `outputs/`, `__pycache__/`, `*.pt`, `*.db`.
+  `data/`, `outputs/`, `__pycache__/`, `*.pt`, `*.csv`.
 - [x] A3. README bootstrap: setup, run-command placeholders, expected outputs.
-- [ ] A4. Put one road video in `data/`; note the filename convention in the README.
+- [ ] A4. Download the **LISA Traffic Light Dataset** (search "LISA traffic light
+  Kaggle") into `data/`; note the folder layout in the README. It arrives as labeled
+  image frames — exactly what you want.
 
 **Verify.** venv activates; `python -c "import cv2, ultralytics, numpy, matplotlib"`
-runs clean. First commit.
+runs clean. Dataset images are present in `data/`. Commit.
 
 ---
 
@@ -94,7 +102,7 @@ runs clean. First commit.
 can ask "hue in the red range *and* bright enough to be a lit lamp?" The brightness
 test excludes the dark housing. OpenCV hue is 0–180 and red sits at *both* ends, so
 red needs two hue bands; yellow and green need one each. Build and test this alone,
-before video, so you trust it later.
+before detection, so you trust it later.
 
 **Tasks.**
 - [ ] B1. Put HSV thresholds in `config.py` (two red bands, one each for yellow/green;
@@ -110,128 +118,123 @@ correctly. Commit.
 
 ---
 
-## Phase C — Detection and tracking
+## Phase C — Detection on images
 *Depends on A; uses B.*
 
 **Concept.** Pretrained YOLO already knows "traffic light" (COCO class 9), so you can
-detect with zero training. Detection alone treats every frame independently — a
-**tracker** links detections across frames and assigns a stable ID, which is what
-makes "how long was *this* light red?" answerable later. The library has tracking
-built in; enable it with ID persistence rather than building one. Do frame-level
-detection first, confirm boxes land right, *then* add tracking.
+detect with zero training. Because inputs are single images, there's no tracking to
+worry about — each image is independent. Get boxes landing correctly on pretrained
+first; Phase E improves them by training.
 
 **Tasks.**
-- [ ] C1. Load pretrained YOLO (`yolov8n.pt`), constrained to the traffic-light class.
-- [ ] C2. Frame-level annotate utility for sampled-frame sanity checks.
-- [ ] C3. Enable tracking mode with persisted IDs across frames.
-- [ ] C4. Per tracked box: crop, call `classify_color`, draw ID + color label.
-- [ ] C5. Collect in-memory `(track_id, frame_index, color)` tuples for the DB path.
-- [ ] C6. Save the annotated video to `outputs/`.
+- [ ] C1. In `detect.py`, load pretrained YOLO (`yolov8n.pt`), constrained to the
+  traffic-light class.
+- [ ] C2. A function that takes an image path, returns the detected boxes.
+- [ ] C3. An annotate helper that draws boxes (and, using Phase B on each crop, the
+  color label) on an image and saves it, for eyeballing a few samples.
 
-**Verify.** Annotated video shows boxes with stable IDs and color labels following
-each light across frames. Commit.
+**Verify.** Boxes are drawn correctly around lights on a handful of sample images,
+with sensible color labels. Commit.
 
 ---
 
-## Phase D — Persistence layer
+## Phase D — Run the pipeline → results CSV
 *Depends on C.*
 
-**Concept.** Instead of holding results in memory, store one row per light per frame
-in SQLite: persistence (process the slow video once, analyze many times), easy
-querying, and a clean split — the pipeline only *writes*, analysis only *reads*.
+**Concept.** Run detect + color over the whole image set once and record every
+prediction to a flat file. Everything downstream (accuracy, stats, plots) reads this
+CSV, so the heavy detection pass and the light analysis passes stay cleanly separated.
 
 **Tasks.**
-- [ ] D1. SQLite init with an `observations` table (`id` PK, `track_id`,
-  `frame_index`, `color`) and indexes on `track_id`, `frame_index`.
-- [ ] D2. `insert_observation(...)`; use a transaction/batch for efficient writes.
-- [ ] D3. Persist video metadata needed later — at minimum **FPS** (a small `meta`
-  table works).
-- [ ] D4. Wire the Phase C loop to insert one row per tracked light per frame.
-- [ ] D5. `fetch_all` returning rows ordered by `track_id` then `frame_index`.
+- [ ] D1. In `pipeline.py`, loop over the dataset images; for each, detect boxes and
+  classify each crop's color.
+- [ ] D2. Write one CSV row per detected box: `image_name, x1, y1, x2, y2,
+  predicted_color, confidence`. Use Python's built-in `csv` module.
+- [ ] D3. Save to `outputs/results.csv`; print a count of images processed and boxes
+  found.
 
-**Verify.** After processing a clip, the `.db` exists with a non-zero row count;
-sample ordered rows look sane. Commit.
+**Verify.** `results.csv` exists with a plausible row count and readable rows.
+Commit.
 
 ---
 
-## Phase E — Custom training *(optional; research it in parallel with D)*
-*Improves C; compared against pretrained.*
+## Phase E — Custom training *(optional but recommended)*
+*Improves C.*
 
 **Concept.** Fine-tuning starts from the pretrained model and keeps training it on
-traffic-light images, improving the hard cases (small/distant lights, your camera's
-look). Keep a **single** class, "traffic light"; let Phase B handle color — fewer
-classes = simpler training and a cleaner report. Slowest phase, mostly waiting; far
-faster on a GPU or free cloud notebook. **Skippable** — "I evaluated pretrained and
-it was sufficient" is a valid, reportable result. Your title says custom-trained,
-though, so you'll likely want it.
+LISA's labeled images, improving the hard cases (small/distant lights). Keep a
+**single** class, "traffic light"; let Phase B handle color — fewer classes = simpler
+training and a cleaner story. Slowest phase, mostly waiting; far faster on a GPU or a
+free cloud notebook. **Skippable** — "I evaluated pretrained and it was sufficient"
+is a valid, reportable result.
 
 **Tasks.**
-- [ ] E1. Choose data (LISA = US lights, common; Bosch = harder/distant; or label
-  your own frames) and document why. *Note: LISA is US lights; if your footage is
-  Israeli roads, test transfer and mention it in the write-up.*
-- [ ] E2. `tools/convert_labels.py` → YOLO format, single class `traffic_light`.
+- [ ] E1. Convert LISA's labels to YOLO format with `tools/convert_labels.py`, single
+  class `traffic_light` (one `.txt` per image, `class cx cy w h` normalized 0–1).
+- [ ] E2. Split train/val **by clip/sequence, not by random frame.** LISA frames come
+  from video, so neighboring frames are near-duplicates; a random split leaks almost
+  identical images into both sets and inflates your accuracy. Split so all frames from
+  one sequence stay on one side.
 - [ ] E3. `configs/data.yaml` (train/val paths, one class) + a train profile
-  (epochs/imgsz/device).
+  (epochs / imgsz 640 / device).
 - [ ] E4. Train; capture the `best.pt` path and metrics.
-- [ ] E5. Re-run C with pretrained **and** custom weights for comparison.
+- [ ] E5. Re-run Phase D with pretrained **and** `best.pt`; compare.
 - [ ] E6. Record the conclusion: custom improved results, or pretrained was enough.
 
-**Verify.** Detection is clearly better than pretrained, or you've documented that it
+**Verify.** Detection is clearly better than pretrained, or you've documented it
 wasn't needed. Commit.
 
 ---
 
-## Phase F — Run collapsing and metrics
-*Depends on D; works on C-only or E outputs.*
+## Phase F — Accuracy evaluation
+*Depends on D; uses the dataset labels.*
 
-**Concept.** The DB has one row per light per frame. Durations come from grouping by
-light ID, ordering by frame, and merging runs of the same color into intervals.
-Convert frames to seconds with the video's **real** FPS — read it from the video,
-never assume a fixed value, or every duration is wrong. Detections flicker (a stray
-misread frame), so drop color runs only a frame or two long to avoid splitting one
-real interval into several.
+**Concept.** This is the payoff that images give you that video didn't: the dataset is
+labeled, so you can measure *real* accuracy instead of "it looked right." Two things
+to score — did detection find the lights (boxes), and did HSV name the color right.
 
 **Tasks.**
-- [ ] F1. `collapse_runs(rows, fps, min_run)`: group by `track_id`, sort by frame,
-  merge contiguous same-color runs, drop sub-`min_run` runs.
-- [ ] F2. Frames → seconds using the stored real FPS.
-- [ ] F3. Per-light interval table: color, start, end, duration.
-- [ ] F4. Aggregate totals and averages per color across the video.
-- [ ] F5. (Optional) transition counts and estimated cycle lengths.
+- [ ] F1. In `evaluate.py`, match each predicted box to a ground-truth box by overlap
+  (IoU above a threshold, e.g. 0.5).
+- [ ] F2. Detection metrics: precision and recall (how many real lights you found, how
+  many predictions were correct).
+- [ ] F3. Color accuracy: over the correctly-detected lights, how often did
+  `classify_color` match the labeled state.
+- [ ] F4. Build a **confusion matrix** for color (rows = true color, columns =
+  predicted) — this shows exactly where HSV fails, e.g. red↔yellow.
 
-**Verify.** Per-light interval table prints with plausible second durations. Commit.
+**Verify.** You can print detection precision/recall and a color confusion matrix
+with real numbers. Commit.
 
 ---
 
 ## Phase G — Reporting visuals
-*Depends on F.*
+*Depends on D and F.*
 
-**Concept.** The "monitoring" payoff — durations become numbers and pictures for the
-report.
+**Concept.** Turn the numbers into pictures for the README.
 
 **Tasks.**
-- [ ] G1. Save a bar chart of total time per color → `outputs/color_totals.png`.
-- [ ] G2. (Optional) timeline plot: time on X, light IDs on Y, colored bar per
-  interval → `outputs/timeline.png`.
-- [ ] G3. Deterministic output naming + overwrite policy.
+- [ ] G1. Bar chart of predicted count per color → `outputs/color_counts.png`.
+- [ ] G2. Confusion-matrix heatmap → `outputs/confusion_matrix.png`.
+- [ ] G3. Save a grid of a few annotated example images (some correct, some wrong) —
+  the failure examples make the strongest part of the write-up.
 
-**Verify.** Required plot files are generated and open correctly. Commit.
+**Verify.** The plot files are generated and open correctly. Commit.
 
 ---
 
-## Phase H — End-to-end entrypoint
+## Phase H — End-to-end entry point
 *Depends on C, D, F, G.*
 
 **Concept.** One command runs everything, so the project is reproducible.
 
 **Tasks.**
-- [ ] H1. `main.py` runs the full pipeline: video → annotated video + filled DB →
-  durations → stats + plots.
-- [ ] H2. Model-selection option (pretrained vs custom weights path).
-- [ ] H3. Progress logging + a final summary of artifact paths.
-- [ ] H4. Graceful messages for missing video / model / DB problems.
+- [ ] H1. `main.py` runs: pipeline over images → `results.csv` → evaluation → plots.
+- [ ] H2. Model-selection option (pretrained vs `best.pt` path).
+- [ ] H3. Progress logging + a final summary of where outputs were written.
+- [ ] H4. Graceful messages for missing dataset / model / file issues.
 
-**Verify.** One command produces the annotated video, DB, printed stats, and plots.
+**Verify.** One command produces `results.csv`, printed accuracy, and the plots.
 Commit.
 
 ---
@@ -242,36 +245,36 @@ Commit.
 **Concept.** Show you understand the system, not just that it runs.
 
 **Tasks.**
-- [ ] I1. README: install, run examples, outputs, interpretation notes.
+- [ ] I1. README: install, run examples, outputs, and your **accuracy numbers**.
 - [ ] I2. Limitations & future work — name the hard cases *and why*: small/distant
-  lights; night vs. day (lit bulb vs. dark reflective housing); overexposed lights
-  washing toward white and breaking color detection; red/yellow confusion under some
-  lighting.
+  lights; overexposed lights washing toward white and breaking color detection;
+  red/yellow confusion under some lighting; and that HSV is lighting-sensitive so
+  results would differ on non-LISA (e.g. Israeli) images. A natural "future work"
+  line: extend to video + tracking for duration analysis.
 - [ ] I3. Final QA pass; commit by phase milestones; push to GitHub.
 
 ---
 
 ## Optional: tests (rigor upgrade)
-*Do only if time allows — skip in favor of CV work and error analysis if tight.*
+*Do only if time allows.*
 
 - [ ] `tests/test_color.py` — `classify_color` on fixed crops, incl. empty-crop guard.
-- [ ] `tests/test_db.py` — insert then `fetch_all`, check count and ordering.
-- [ ] `tests/test_analyze.py` — `collapse_runs` on a tiny synthetic log, check
-  intervals and that flicker filtering works.
+- [ ] `tests/test_evaluate.py` — IoU matching and the confusion-matrix build on a tiny
+  synthetic set with known answers.
 
 ---
 
 ## Verification summary (whole project)
 
-- Environment: import smoke test passes.
+- Environment: import smoke test passes; dataset present.
 - Color: classifier correct on ≥3 labeled crops.
-- Detection: boxes correct on sample frames.
-- Tracking: IDs stable across consecutive frames in the annotated output.
-- DB: non-zero row count; ordered rows inspected.
-- Analysis: collapsed intervals have plausible second durations.
-- Plots: required files generated and readable.
-- End-to-end: one command → annotated video + DB + stats + plots.
-- Regression (if tests built): color/db/analyze suites pass.
+- Detection: boxes correct on sample images.
+- Pipeline: `results.csv` has a plausible row count.
+- Evaluation: detection precision/recall and a color confusion matrix print with real
+  numbers.
+- Plots: count chart + confusion matrix generated and readable.
+- End-to-end: one command → CSV + accuracy + plots.
+- Regression (if tests built): color/evaluate suites pass.
 
 ---
 
@@ -279,19 +282,19 @@ Commit.
 
 | Phase | Result | Rough time |
 |------|--------|------------|
-| A | Environment + repo | 30 min |
+| A | Environment + repo + dataset | 45 min |
 | B | Color classifier you trust | 1–2 hrs |
-| C | Detection + tracking + color on video | 3–4 hrs |
-| D | Observation database | 1–2 hrs |
+| C | Detection on images | 1–2 hrs |
+| D | Results CSV over the image set | 1 hr |
 | E | Custom-trained detector *(optional)* | 3–5 hrs |
-| F | Clean per-light durations | 2 hrs |
+| F | Accuracy + confusion matrix | 2–3 hrs |
 | G | Stats + plots | 1–2 hrs |
 | H | One-command pipeline | 1 hr |
 | I | README + write-up | 1–2 hrs |
-| Tests | Regression suite *(optional)* | 1–2 hrs |
+| Tests | Regression suite *(optional)* | 1 hr |
 
-Demoable result after **Phase C** — everything after is storage, analysis, or rigor,
-so you're never left with nothing.
+Demoable result after **Phase D** — you have detections and colors logged. Everything
+after is training, evaluation, or polish, so you're never left with nothing.
 
 ---
 
@@ -302,8 +305,6 @@ so you're never left with nothing.
 - Check each result against the Tasks and the Verify step before ticking boxes.
 - When code breaks, understand the fix, don't just paste it — that's where the CV
   learning happens.
-- Graded project: check your course's rules on AI-assisted code, and be ready to
-  explain any line you submit.
 
 ---
 
@@ -311,8 +312,9 @@ so you're never left with nothing.
 
 - HSV color segmentation (B)
 - Object detection and pretrained models (C)
-- Multi-object tracking and persistent IDs (C)
-- Database design and separating collection from analysis (D)
-- Fine-tuning a neural network on a custom dataset (E)
-- Turning noisy per-frame data into clean statistics (F–G)
-- Assembling, testing, and documenting a real CV project (H–I)
+- Building a batch inference pipeline and logging results (D)
+- Fine-tuning a neural network on a custom dataset, incl. correct train/val splitting
+  (E)
+- Evaluating a model properly: IoU matching, precision/recall, confusion matrices (F)
+- Turning results into clear statistics and visuals (G)
+- Assembling and documenting a real CV project (H–I)
