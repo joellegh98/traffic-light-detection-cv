@@ -78,7 +78,7 @@ tracks each phase. SQLite ships with Python — nothing to install for the datab
   `opencv-python`, `numpy`, `matplotlib`; confirm imports.
 - [x] A2. Create the skeleton (see Relevant files) and a `.gitignore` for `venv/`,
   `data/`, `outputs/`, `__pycache__/`, `*.pt`, `*.db`.
-- [ ] A3. README bootstrap: setup, run-command placeholders, expected outputs.
+- [x] A3. README bootstrap: setup, run-command placeholders, expected outputs.
 - [ ] A4. Put one road video in `data/`; note the filename convention in the README.
 
 **Verify.** venv activates; `python -c "import cv2, ultralytics, numpy, matplotlib"`
