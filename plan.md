@@ -105,7 +105,7 @@ red needs two hue bands; yellow and green need one each. Build and test this alo
 before detection, so you trust it later.
 
 **Tasks.**
-- [ ] B1. Put HSV thresholds in `config.py` (two red bands, one each for yellow/green;
+- [x] B1. Put HSV thresholds in `config.py` (two red bands, one each for yellow/green;
   a Value floor; a minimum-active-pixel count).
 - [ ] B2. `classify_color(crop)` → `"red"|"yellow"|"green"|"unknown"`; guard empty /
   `None` crops. Convert to HSV, mask hue-in-range **and** bright pixels per color,
