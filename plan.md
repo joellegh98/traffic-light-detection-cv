@@ -127,7 +127,7 @@ worry about — each image is independent. Get boxes landing correctly on pretra
 first; Phase E improves them by training.
 
 **Tasks.**
-- [ ] C1. In `detect.py`, load pretrained YOLO (`yolov8n.pt`), constrained to the
+- [x] C1. In `detect.py`, load pretrained YOLO (`yolov8n.pt`), constrained to the
   traffic-light class.
 - [ ] C2. A function that takes an image path, returns the detected boxes.
 - [ ] C3. An annotate helper that draws boxes (and, using Phase B on each crop, the
