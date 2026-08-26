@@ -130,7 +130,7 @@ first; Phase E improves them by training.
 - [x] C1. In `detect.py`, load pretrained YOLO (`yolov8n.pt`), constrained to the
   traffic-light class.
 - [x] C2. A function that takes an image path, returns the detected boxes.
-- [ ] C3. An annotate helper that draws boxes (and, using Phase B on each crop, the
+- [x] C3. An annotate helper that draws boxes (and, using Phase B on each crop, the
   color label) on an image and saves it, for eyeballing a few samples.
 
 **Verify.** Boxes are drawn correctly around lights on a handful of sample images,
