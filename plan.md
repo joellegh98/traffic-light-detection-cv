@@ -171,7 +171,7 @@ is a valid, reportable result.
 **Tasks.**
 - [x] E1. Convert LISA's labels to YOLO format with `tools/convert_labels.py`, single
   class `traffic_light` (one `.txt` per image, `class cx cy w h` normalized 0–1).
-- [ ] E2. Split train/val **by clip/sequence, not by random frame.** LISA frames come
+- [x] E2. Split train/val **by clip/sequence, not by random frame.** LISA frames come
   from video, so neighboring frames are near-duplicates; a random split leaks almost
   identical images into both sets and inflates your accuracy. Split so all frames from
   one sequence stay on one side.

@@ -15,6 +15,7 @@ Run from the project root, e.g.:
 """
 
 import csv
+import shutil
 from collections import defaultdict
 from pathlib import Path
 
@@ -22,7 +23,15 @@ import cv2
 
 CLASS_ID = 0  # single class: traffic_light
 
+DATASET_ROOT = Path("data/lisa")
 LABELS_ROOT = Path("data/lisa_labels")
+
+# Where Phase E2's assembled training tree lives - Ultralytics auto-finds
+# labels for an image by replacing "/images/" with "/labels/" in its path,
+# so both need this exact "images/<split>" and "labels/<split>" layout
+# (unlike the raw dataset's own "frames" folders, which don't match that
+# convention).
+YOLO_DATASET_ROOT = Path("data/yolo_dataset")
 
 
 def convert_clip(frames_dir, annotations_csv, labels_dir=None):
@@ -78,11 +87,68 @@ def convert_clip(frames_dir, annotations_csv, labels_dir=None):
     return images_labeled, boxes_written
 
 
-if __name__ == "__main__":
-    # Smoke-test conversion on one known clip; Phase E2 decides the real
-    # train/val clip set and runs this for real over that set.
-    images_labeled, boxes_written = convert_clip(
-        frames_dir="data/lisa/dayTrain/dayTrain/dayClip5/frames",
-        annotations_csv="data/lisa/Annotations/Annotations/dayTrain/dayClip5/frameAnnotationsBOX.csv",
+# --- Phase E2: train/val split, by whole clip -------------------------------
+#
+# LISA frames come from video, so neighboring frames are near-duplicates. A
+# random frame-level split would leak almost-identical images into both train
+# and val and inflate the reported accuracy. Splitting by whole clip instead
+# means every frame from one clip stays entirely on one side.
+#
+# Each entry is (split_name, clip_name, stride). `stride` samples every Nth
+# frame of that clip so the small, CPU-sized training set still spans each
+# clip's full duration (and color-state range) instead of just its start -
+# same reasoning as Phase D3's capped run.
+TRAIN_CLIPS = [
+    ("dayTrain", "dayClip1", 14),
+    ("dayTrain", "dayClip5", 14),
+    ("nightTrain", "nightClip2", 14),
+]
+VAL_CLIPS = [
+    ("dayTrain", "dayClip7", 22),
+    ("nightTrain", "nightClip1", 22),
+]
+
+
+def _clip_paths(split_name, clip_name):
+    frames_dir = DATASET_ROOT / split_name / split_name / clip_name / "frames"
+    annotations_csv = (
+        DATASET_ROOT / "Annotations/Annotations" / split_name / clip_name / "frameAnnotationsBOX.csv"
     )
-    print(f"dayClip5: {images_labeled} images labeled, {boxes_written} boxes written")
+    return frames_dir, annotations_csv
+
+
+def assemble_split(clips, split):
+    """Convert (if needed) and copy a stride-sampled subset of `clips` into
+    data/yolo_dataset/{images,labels}/<split>/.
+
+    Returns (images_copied, boxes_copied).
+    """
+    images_dir = YOLO_DATASET_ROOT / "images" / split
+    labels_dir = YOLO_DATASET_ROOT / "labels" / split
+    images_dir.mkdir(parents=True, exist_ok=True)
+    labels_dir.mkdir(parents=True, exist_ok=True)
+
+    images_copied = 0
+    boxes_copied = 0
+    for split_name, clip_name, stride in clips:
+        frames_dir, annotations_csv = _clip_paths(split_name, clip_name)
+        convert_clip(frames_dir, annotations_csv)
+        clip_labels_dir = LABELS_ROOT / clip_name
+
+        for image_path in sorted(frames_dir.glob("*.jpg"))[::stride]:
+            label_path = clip_labels_dir / (image_path.stem + ".txt")
+            shutil.copy(image_path, images_dir / image_path.name)
+            shutil.copy(label_path, labels_dir / label_path.name)
+            images_copied += 1
+            with open(label_path) as f:
+                boxes_copied += sum(1 for _ in f)
+
+    return images_copied, boxes_copied
+
+
+if __name__ == "__main__":
+    train_images, train_boxes = assemble_split(TRAIN_CLIPS, "train")
+    print(f"train: {train_images} images, {train_boxes} boxes ({[c[1] for c in TRAIN_CLIPS]})")
+
+    val_images, val_boxes = assemble_split(VAL_CLIPS, "val")
+    print(f"val:   {val_images} images, {val_boxes} boxes ({[c[1] for c in VAL_CLIPS]})")
