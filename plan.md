@@ -194,13 +194,13 @@ labeled, so you can measure *real* accuracy instead of "it looked right." Two th
 to score — did detection find the lights (boxes), and did HSV name the color right.
 
 **Tasks.**
-- [ ] F1. In `evaluate.py`, match each predicted box to a ground-truth box by overlap
+- [x] F1. In `evaluate.py`, match each predicted box to a ground-truth box by overlap
   (IoU above a threshold, e.g. 0.5).
-- [ ] F2. Detection metrics: precision and recall (how many real lights you found, how
+- [x] F2. Detection metrics: precision and recall (how many real lights you found, how
   many predictions were correct).
-- [ ] F3. Color accuracy: over the correctly-detected lights, how often did
+- [x] F3. Color accuracy: over the correctly-detected lights, how often did
   `classify_color` match the labeled state.
-- [ ] F4. Build a **confusion matrix** for color (rows = true color, columns =
+- [x] F4. Build a **confusion matrix** for color (rows = true color, columns =
   predicted) — this shows exactly where HSV fails, e.g. red↔yellow.
 
 **Verify.** You can print detection precision/recall and a color confusion matrix

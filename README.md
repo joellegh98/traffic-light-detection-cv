@@ -115,6 +115,28 @@ lights; more training data and epochs would plausibly close, or reverse, the
 recall gap. That's noted as future work (Phase I) rather than pursued further
 here, given the project's CPU-only budget.
 
+## Accuracy evaluation (Phase F)
+
+`python -m src.evaluate` scores the pretrained detector's `outputs/results.csv`
+(the D3 subset: `dayClip1/5/7`, `nightClip1/2`) against LISA's ground-truth labels -
+IoU matching for detection, then color accuracy over what was actually detected.
+
+**Detection (IoU >= 0.5):** precision 0.361, recall 0.388 (2455 true positives, 4340
+false positives, 3875 false negatives). Lower than it might look at first: restricting
+the same evaluation to just `dayClip7`+`nightClip1` (Phase E5's exact scope, IoU>=0.3)
+reproduces E5's numbers almost exactly (recall 0.792 vs. E5's 0.783) - confirming the
+evaluator is correct - so the weaker aggregate score is a real effect of the other 3
+clips, not a bug. `dayClip5` in particular is the dusk/short-shutter clip flagged back
+in Phase C for backlit, hard-to-detect lights; it's dragging the average down.
+
+**Color accuracy (over the 2455 correctly-detected lights): 96.9%** (2379/2455) -
+validates Phase B/B4's HSV tuning holds up at scale, not just on the handful of
+crops used to tune it. The confusion matrix shows exactly one real failure mode:
+19 true `yellow` lights read as `red` (13 correctly read as yellow) - the same
+overexposed-yellow-measures-as-red-hue effect documented in `config.py` back in
+B4, now confirmed at dataset scale rather than on a handful of samples. Red and
+green both have effectively zero cross-confusion.
+
 ## Data
 
 The **[LISA Traffic Light Dataset](https://www.kaggle.com/datasets/mbornoe/lisa-traffic-light-dataset)**
