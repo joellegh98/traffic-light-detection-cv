@@ -169,7 +169,7 @@ free cloud notebook. **Skippable** — "I evaluated pretrained and it was suffic
 is a valid, reportable result.
 
 **Tasks.**
-- [ ] E1. Convert LISA's labels to YOLO format with `tools/convert_labels.py`, single
+- [x] E1. Convert LISA's labels to YOLO format with `tools/convert_labels.py`, single
   class `traffic_light` (one `.txt` per image, `class cx cy w h` normalized 0–1).
 - [ ] E2. Split train/val **by clip/sequence, not by random frame.** LISA frames come
   from video, so neighboring frames are near-duplicates; a random split leaks almost
