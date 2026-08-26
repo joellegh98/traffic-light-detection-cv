@@ -179,7 +179,7 @@ is a valid, reportable result.
   (epochs / imgsz 640 / device).
 - [x] E4. Train; capture the `best.pt` path and metrics.
 - [x] E5. Re-run Phase D with pretrained **and** `best.pt`; compare.
-- [ ] E6. Record the conclusion: custom improved results, or pretrained was enough.
+- [x] E6. Record the conclusion: custom improved results, or pretrained was enough.
 
 **Verify.** Detection is clearly better than pretrained, or you've documented it
 wasn't needed. Commit.

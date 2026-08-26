@@ -96,8 +96,24 @@ training), matching predictions to ground truth by IoU>=0.3:
 
 The custom model is far more precise (fewer false positives) but misses more real
 lights than pretrained - with only 511 training images and 15 epochs, it learned to
-be conservative rather than to generalize broadly. The improved-or-not conclusion
-(Phase E6) is still to come.
+be conservative rather than to generalize broadly.
+
+**Conclusion (Phase E6): pretrained is the better default for this project.**
+Custom training did not improve overall detection - it's a genuine trade-off, not
+a clean win. For a monitoring system, missing a real light (recall) is a more
+serious failure than an extra false positive (precision): a light that's never
+detected can never be tracked or timed, while a spurious box is comparatively
+harmless downstream. On that basis, **pretrained `yolov8n.pt` is used as the
+default detector** for the rest of this project (Phases F-H), with the
+custom-trained option kept available via `--weights` (Phase H2) for anyone who
+wants to reproduce or extend the comparison.
+
+This isn't a verdict against fine-tuning in general - it's specific to a
+compute-constrained, CPU-only, 511-image/15-epoch run. The custom model's much
+higher precision (0.923 vs 0.774) shows it did learn something real about LISA's
+lights; more training data and epochs would plausibly close, or reverse, the
+recall gap. That's noted as future work (Phase I) rather than pursued further
+here, given the project's CPU-only budget.
 
 ## Data
 
