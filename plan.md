@@ -146,7 +146,7 @@ prediction to a flat file. Everything downstream (accuracy, stats, plots) reads 
 CSV, so the heavy detection pass and the light analysis passes stay cleanly separated.
 
 **Tasks.**
-- [ ] D1. In `pipeline.py`, loop over the dataset images; for each, detect boxes and
+- [x] D1. In `pipeline.py`, loop over the dataset images; for each, detect boxes and
   classify each crop's color.
 - [ ] D2. Write one CSV row per detected box: `image_name, x1, y1, x2, y2,
   predicted_color, confidence`. Use Python's built-in `csv` module.
