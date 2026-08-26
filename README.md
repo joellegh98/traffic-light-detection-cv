@@ -7,9 +7,9 @@ summarized with Matplotlib.
 
 **Stack:** Python, OpenCV, Ultralytics YOLO, PyTorch, NumPy, CSV, Matplotlib
 
-> **Status:** Under construction, built phase by phase — see [plan.md](plan.md) for
-> the full build plan and current progress. Sections below marked *(coming soon)*
-> aren't implemented yet.
+> **Status:** Core pipeline complete (Phases A-H) and documented (Phase I) - see
+> [plan.md](plan.md) for the full build plan and phase-by-phase progress. The
+> optional `tests/` suite (noted as skippable in the plan) was not built.
 
 ## Setup
 
@@ -38,23 +38,35 @@ src/
   evaluate.py   accuracy vs. labels: precision/recall, confusion matrix (Phase F)
   report.py     stats + plots (Phase G)
   main.py       end-to-end entrypoint (Phase H)
+tools/
+  convert_labels.py    LISA CSV -> YOLO label .txt files + train/val split (Phase E1-E2)
+  train.py             fine-tune YOLO on the split (Phase E3-E4)
+  compare_detectors.py pretrained vs. custom recall/precision on held-out clips (Phase E5)
+  validate_color.py    manual classify_color() check against 3 real crops (Phase B3)
+configs/
+  data.yaml     YOLO dataset config used by tools/train.py (Phase E3)
 data/       dataset images + labels (git-ignored, not committed)
-outputs/    results.csv, plots (git-ignored, not committed)
+outputs/    results.csv, plots, trained weights (git-ignored, not committed)
 ```
 
-## Running the pipeline *(coming soon)*
+## Running the pipeline
 
-Once Phase H is complete, the full pipeline will run as:
 ```
-python -m src.main --data data/<dataset_folder>
+python -m src.main                    # pretrained detector (default, see Phase E6)
+python -m src.main --weights custom   # Phase E's fine-tuned best.pt instead
+python -m src.main --weights path/to/other.pt
 ```
+
+One command: runs detection + color over the dataset subset described below,
+scores it against ground truth, and generates all three plots. Takes ~2.5-3
+minutes on a CPU-only machine. Prints a final summary of every file written.
 
 ## Expected outputs
 
-Running the pipeline produces:
+`python -m src.main` (above) produces all of these in one run; each is also runnable
+standalone during development:
 - `outputs/results.csv` — one row per detected box (`image_name, x1, y1, x2, y2,
-  predicted_color, confidence`) - via `run_pipeline()` in `src/pipeline.py`
-  (a one-command `main.py` entrypoint comes in Phase H)
+  predicted_color, confidence`) - `run_pipeline()` in `src/pipeline.py`
 - printed detection precision/recall and a color confusion matrix -
   `python -m src.evaluate`
 - `outputs/color_counts.png` — bar chart of predicted count per color -
@@ -176,4 +188,51 @@ ignored.)
 
 ## Limitations & future work
 
-*(To be documented in Phase I, after the pipeline is built and evaluated.)*
+**Small/distant lights are the dominant failure mode.** Detection recall (0.388 at
+IoU>=0.5, aggregate) is the weakest number in this project, and it's a detection
+problem, not a color one - Phase C's eyeballing (`outputs/c3_sample*.png`) first
+showed YOLO missing lights a human spots instantly at a glance, and Phase F
+confirmed it numerically at dataset scale. Pretrained YOLOv8n simply wasn't
+trained with tiny, distant traffic lights as a priority class.
+
+**Backlit/dusk conditions break color classification, not just detection.**
+`dayClip5` (dusk, short camera shutter) produces dark, backlit light housings
+silhouetted against a bright sky - `classify_color` correctly falls back to
+`unknown` rather than guess (see `outputs/example_grid.png`'s red-read-as-unknown
+example), but this means real lights are being scored as color-misses even when
+they're detected. This is the housing/background suppression from Phase B4
+working as designed, not a bug - it's just a harder condition than daylight.
+
+**Red/yellow confusion under overexposure.** The one real cross-color confusion
+found (Phase F's confusion matrix, 19 cases): an overexposed "warning" (yellow)
+light's brightest pixels measure at hue 0-11, statistically indistinguishable from
+red at the pixel level - a camera/exposure effect, not a classifier bug. Widening
+`RED_HUE_RANGES` to compensate would just break real red crops the other way (see
+`config.py`'s B4 comments) - this is a genuine limit of HSV-only classification
+under some lighting, not a tuning gap.
+
+**HSV thresholds are tuned on LISA (US) lights, not verified elsewhere.** All of
+`config.py`'s thresholds were tuned against LISA crops. LISA is US-standard traffic
+lights; lights elsewhere (e.g. Israeli intersections) can differ in lamp
+color/brightness, housing style, and typical camera exposure, so these exact
+thresholds aren't guaranteed to transfer without re-validating against local
+footage the way Phase B4 did here.
+
+**Custom training was compute-constrained, not exhausted.** Phase E6 found
+pretrained is the better default *for this run* (511 images, 15 epochs, CPU-only) -
+the custom model's higher precision suggests real learning happened; more data and
+epochs would plausibly close or reverse the recall gap. Worth revisiting with a
+larger training set or a GPU/cloud notebook, per the original Phase E concept note.
+
+**This project also only ever ran on a subset (`dayClip1/5/7`, `nightClip1/2`,
+2,090 of ~43k images)**, chosen throughout for CPU iteration speed. `run_pipeline()`
+and `main.py`'s `DEFAULT_CLIP_DIRS` both support running the full dataset - the
+reported numbers would likely shift somewhat (probably down slightly, since more
+clips means more of LISA's harder day/night variety) with a full run.
+
+**Future work:** the most natural extension is what this project deliberately
+scoped out - video + tracking for duration analysis (how long was a given light
+red?), which was the original plan before pivoting to images specifically to get
+measurable accuracy against labels. Also worth trying: a longer/larger Phase E
+training run now that the pipeline and evaluation are proven correct, and testing
+against non-US footage to see how far the HSV thresholds actually transfer.

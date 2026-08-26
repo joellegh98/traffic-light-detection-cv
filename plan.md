@@ -245,13 +245,13 @@ Commit.
 **Concept.** Show you understand the system, not just that it runs.
 
 **Tasks.**
-- [ ] I1. README: install, run examples, outputs, and your **accuracy numbers**.
-- [ ] I2. Limitations & future work — name the hard cases *and why*: small/distant
+- [x] I1. README: install, run examples, outputs, and your **accuracy numbers**.
+- [x] I2. Limitations & future work — name the hard cases *and why*: small/distant
   lights; overexposed lights washing toward white and breaking color detection;
   red/yellow confusion under some lighting; and that HSV is lighting-sensitive so
   results would differ on non-LISA (e.g. Israeli) images. A natural "future work"
   line: extend to video + tracking for duration analysis.
-- [ ] I3. Final QA pass; commit by phase milestones; push to GitHub.
+- [x] I3. Final QA pass; commit by phase milestones; push to GitHub.
 
 ---
 
