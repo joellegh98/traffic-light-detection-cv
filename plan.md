@@ -231,7 +231,7 @@ with real numbers. Commit.
 **Tasks.**
 - [x] H1. `main.py` runs: pipeline over images → `results.csv` → evaluation → plots.
 - [x] H2. Model-selection option (pretrained vs `best.pt` path).
-- [ ] H3. Progress logging + a final summary of where outputs were written.
+- [x] H3. Progress logging + a final summary of where outputs were written.
 - [ ] H4. Graceful messages for missing dataset / model / file issues.
 
 **Verify.** One command produces `results.csv`, printed accuracy, and the plots.
