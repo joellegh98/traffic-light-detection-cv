@@ -107,7 +107,7 @@ before detection, so you trust it later.
 **Tasks.**
 - [x] B1. Put HSV thresholds in `config.py` (two red bands, one each for yellow/green;
   a Value floor; a minimum-active-pixel count).
-- [ ] B2. `classify_color(crop)` → `"red"|"yellow"|"green"|"unknown"`; guard empty /
+- [x] B2. `classify_color(crop)` → `"red"|"yellow"|"green"|"unknown"`; guard empty /
   `None` crops. Convert to HSV, mask hue-in-range **and** bright pixels per color,
   count, highest wins; below the minimum count → `"unknown"`.
 - [ ] B3. A quick manual-validation script for three representative crops.
