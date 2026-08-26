@@ -17,12 +17,17 @@ from ultralytics import YOLO
 DATA_CONFIG = "configs/data.yaml"
 BASE_WEIGHTS = "yolov8n.pt"
 
+# `project` must be absolute: Ultralytics' global settings.json sets its own
+# runs_dir, and a *relative* project path gets silently prepended with
+# "<runs_dir>/detect/" instead of being used as-is (confirmed empirically -
+# a first run landed at runs/detect/outputs/train_runs/... instead of
+# outputs/train_runs/...). An absolute path is used verbatim.
 TRAIN_PROFILE = dict(
     epochs=15,
     imgsz=416,
     batch=8,
     device="cpu",
-    project="outputs/train_runs",
+    project=str(Path("outputs/train_runs").resolve()),
     name="lisa_traffic_light",
 )
 

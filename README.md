@@ -70,6 +70,24 @@ is still represented, not just its first few seconds. 2,090 images processed, 6,
 boxes found. A full-dataset run can be done later (e.g. before final submission) by
 calling `run_pipeline()` with its defaults.
 
+## Custom-trained detector (Phase E)
+
+A YOLOv8n model was fine-tuned on a LISA subset, entirely on CPU (`python -m
+tools.train`, see `configs/data.yaml` for the dataset and `tools/train.py` for the
+profile):
+
+- **Train:** `dayClip1`, `dayClip5`, `nightClip2` (511 images, 1594 boxes)
+- **Val:** `dayClip7`, `nightClip1` — different clips than train, per Phase E2
+  (151 images, 451 boxes)
+- **Profile:** 15 epochs, imgsz 416, batch 8 — 15.3 minutes wall time
+- **Result (`best.pt`, on val):** Precision 0.722, Recall 0.702, mAP50 0.651,
+  mAP50-95 0.328
+- Weights at `outputs/train_runs/lisa_traffic_light/weights/best.pt` (git-ignored
+  like all other outputs - retrain locally with the command above to reproduce)
+
+A pretrained-vs-custom comparison (Phase E5) and the improved-or-not conclusion
+(Phase E6) are still to come.
+
 ## Data
 
 The **[LISA Traffic Light Dataset](https://www.kaggle.com/datasets/mbornoe/lisa-traffic-light-dataset)**

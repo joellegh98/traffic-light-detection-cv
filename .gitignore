@@ -20,3 +20,7 @@ outputs/
 *.pt
 *.csv
 
+# Ultralytics' own run artifacts, if its global runs_dir setting ever points
+# back into the repo root instead of an absolute outputs/ path.
+/runs/
+
