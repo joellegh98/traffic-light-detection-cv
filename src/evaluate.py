@@ -101,7 +101,9 @@ def load_predictions(results_csv):
     return pred_by_image
 
 
-def evaluate(results_csv, clips=RESULT_CLIPS, stride=RESULT_STRIDE, iou_threshold=IOU_THRESHOLD):
+def evaluate(
+    results_csv, clips=RESULT_CLIPS, stride=RESULT_STRIDE, iou_threshold=IOU_THRESHOLD, collect_examples=False
+):
     """Match predictions to ground truth by IoU and score detection +
     color. Returns a dict of counts, precision/recall, color accuracy, and a
     {true_color: {predicted_color: count}} confusion matrix.
@@ -111,6 +113,10 @@ def evaluate(results_csv, clips=RESULT_CLIPS, stride=RESULT_STRIDE, iou_threshol
     but a strided run only attempts a fraction of them, and an image with
     zero predicted boxes doesn't appear in results.csv at all. Without this
     restriction, both cases would be wrongly counted as missed detections.
+
+    If `collect_examples` is True, also returns "examples": one record per
+    matched (true-positive) detection - {image_name, box, true_color,
+    predicted_color, correct} - for Phase G's example-image grid.
     """
     images = evaluated_image_names(clips, stride)
     gt_by_image = load_ground_truth(clips)
@@ -122,6 +128,7 @@ def evaluate(results_csv, clips=RESULT_CLIPS, stride=RESULT_STRIDE, iou_threshol
     color_correct = 0
     color_total = 0
     confusion = defaultdict(lambda: defaultdict(int))
+    examples = []
 
     for image_name in images:
         preds = pred_by_image.get(image_name, [])
@@ -143,8 +150,19 @@ def evaluate(results_csv, clips=RESULT_CLIPS, stride=RESULT_STRIDE, iou_threshol
                 true_color = gts[best_idx][4]
                 confusion[true_color][pred_color] += 1
                 color_total += 1
-                if pred_color == true_color:
+                correct = pred_color == true_color
+                if correct:
                     color_correct += 1
+                if collect_examples:
+                    examples.append(
+                        {
+                            "image_name": image_name,
+                            "box": (x1, y1, x2, y2),
+                            "true_color": true_color,
+                            "predicted_color": pred_color,
+                            "correct": correct,
+                        }
+                    )
             else:
                 false_positives += 1
 
@@ -154,7 +172,7 @@ def evaluate(results_csv, clips=RESULT_CLIPS, stride=RESULT_STRIDE, iou_threshol
     recall = true_positives / (true_positives + false_negatives) if (true_positives + false_negatives) else 0.0
     color_accuracy = color_correct / color_total if color_total else 0.0
 
-    return {
+    result = {
         "true_positives": true_positives,
         "false_positives": false_positives,
         "false_negatives": false_negatives,
@@ -165,6 +183,9 @@ def evaluate(results_csv, clips=RESULT_CLIPS, stride=RESULT_STRIDE, iou_threshol
         "color_accuracy": color_accuracy,
         "confusion": {true: dict(preds) for true, preds in confusion.items()},
     }
+    if collect_examples:
+        result["examples"] = examples
+    return result
 
 
 def print_confusion_matrix(confusion, colors=("red", "yellow", "green", "unknown")):

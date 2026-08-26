@@ -53,14 +53,15 @@ python -m src.main --data data/<dataset_folder>
 
 Running the pipeline produces:
 - `outputs/results.csv` — one row per detected box (`image_name, x1, y1, x2, y2,
-  predicted_color, confidence`)
-- printed detection precision/recall and a color confusion matrix *(coming soon,
-  Phase F)*
-- `outputs/color_counts.png` — bar chart of predicted count per color *(coming
-  soon, Phase G)*
-- `outputs/confusion_matrix.png` — confusion-matrix heatmap *(coming soon, Phase G)*
-- a saved grid of a few annotated example images (correct and incorrect)
-  *(coming soon, Phase G)*
+  predicted_color, confidence`) - via `run_pipeline()` in `src/pipeline.py`
+  (a one-command `main.py` entrypoint comes in Phase H)
+- printed detection precision/recall and a color confusion matrix -
+  `python -m src.evaluate`
+- `outputs/color_counts.png` — bar chart of predicted count per color -
+  `python -m src.report`
+- `outputs/confusion_matrix.png` — confusion-matrix heatmap - `python -m src.report`
+- `outputs/example_grid.png` — a few annotated example detections, correct and
+  wrong - `python -m src.report`
 
 **Current `results.csv` scope:** to keep iteration fast on a CPU-only machine (the
 full ~43k-image dataset takes roughly an hour), this run covers a capped subset —

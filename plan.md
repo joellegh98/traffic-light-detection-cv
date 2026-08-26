@@ -214,9 +214,9 @@ with real numbers. Commit.
 **Concept.** Turn the numbers into pictures for the README.
 
 **Tasks.**
-- [ ] G1. Bar chart of predicted count per color → `outputs/color_counts.png`.
-- [ ] G2. Confusion-matrix heatmap → `outputs/confusion_matrix.png`.
-- [ ] G3. Save a grid of a few annotated example images (some correct, some wrong) —
+- [x] G1. Bar chart of predicted count per color → `outputs/color_counts.png`.
+- [x] G2. Confusion-matrix heatmap → `outputs/confusion_matrix.png`.
+- [x] G3. Save a grid of a few annotated example images (some correct, some wrong) —
   the failure examples make the strongest part of the write-up.
 
 **Verify.** The plot files are generated and open correctly. Commit.
