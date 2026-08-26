@@ -7,6 +7,7 @@ Run from the project root:
 """
 
 import argparse
+import sys
 import time
 from pathlib import Path
 
@@ -44,9 +45,43 @@ def resolve_weights(weights_arg):
     return weights_arg
 
 
+def check_dataset_available(clip_dirs=DEFAULT_CLIP_DIRS, clips=RESULT_CLIPS):
+    """Fail with one clear, actionable message rather than a raw traceback
+    partway through processing if the LISA dataset isn't where expected."""
+    missing = [d for d in clip_dirs if not d.exists()]
+    missing += [
+        p
+        for split, clip in clips
+        if not (p := DATASET_ROOT / "Annotations/Annotations" / split / clip / "frameAnnotationsBOX.csv").exists()
+    ]
+    if missing:
+        listed = "\n".join(f"  {p}" for p in missing)
+        raise FileNotFoundError(
+            f"LISA dataset not found - missing:\n{listed}\n\n"
+            "Download the LISA Traffic Light Dataset into data/lisa/ - see the "
+            "README's Data section for the expected folder layout."
+        )
+
+
+def check_weights_available(resolved):
+    """Same idea for model weights: catch a missing custom-trained model
+    before Ultralytics raises something less clear. A bare model name with
+    no path separator (e.g. 'yolov8s.pt') is left alone - Ultralytics
+    downloads those itself, so a missing local file isn't an error there.
+    """
+    if resolved and ("/" in resolved or "\\" in resolved) and not Path(resolved).exists():
+        raise FileNotFoundError(
+            f"Weights file not found: {resolved}\n"
+            "If this is the Phase E custom model, train it first: python -m tools.train"
+        )
+
+
 def main(weights="pretrained"):
     start = time.time()
     resolved = resolve_weights(weights)
+
+    check_dataset_available()
+    check_weights_available(resolved)
 
     print(f"[1/4] Loading model (weights={weights!r})...")
     model = load_model(resolved) if resolved else load_model()
@@ -89,4 +124,9 @@ if __name__ == "__main__":
         help="'pretrained' (default, see Phase E6), 'custom' (Phase E's best.pt), or a literal weights path.",
     )
     args = parser.parse_args()
-    main(weights=args.weights)
+
+    try:
+        main(weights=args.weights)
+    except FileNotFoundError as e:
+        print(f"\nError: {e}", file=sys.stderr)
+        sys.exit(1)
