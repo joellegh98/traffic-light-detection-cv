@@ -31,12 +31,29 @@ def load_model(weights=DEFAULT_WEIGHTS):
     return YOLO(weights)
 
 
+def _resolve_class_id(model):
+    """Find the traffic-light class id in `model`'s own label map.
+
+    TRAFFIC_LIGHT_CLASS_ID (9) is only valid for the pretrained 80-class COCO
+    model - a Phase E custom-trained model is single-class ("traffic_light",
+    id 0), so hardcoding 9 there would filter for a class that doesn't exist
+    and silently return zero detections. Resolve dynamically instead of
+    assuming COCO's numbering applies to whichever weights were loaded.
+    """
+    if model.names.get(TRAFFIC_LIGHT_CLASS_ID, "").replace("_", " ") == "traffic light":
+        return TRAFFIC_LIGHT_CLASS_ID
+    if len(model.names) == 1:
+        return next(iter(model.names))
+    raise ValueError(f"Could not resolve traffic-light class id from model.names={model.names}")
+
+
 def detect_traffic_lights(image_path, model=None, conf=0.25):
     """Run YOLO on a single image, returning only traffic-light boxes.
 
     `model` should be passed in (loaded once via load_model()) when calling
     this repeatedly over many images - e.g. Phase D's pipeline loop - so each
-    call doesn't reload the weights from disk.
+    call doesn't reload the weights from disk. Works with both the pretrained
+    model and a Phase E custom-trained model (see _resolve_class_id).
 
     Returns a list of (x1, y1, x2, y2, confidence) tuples in integer pixel
     coordinates, one per detected traffic light.
@@ -46,7 +63,7 @@ def detect_traffic_lights(image_path, model=None, conf=0.25):
 
     results = model.predict(
         source=str(image_path),
-        classes=[TRAFFIC_LIGHT_CLASS_ID],
+        classes=[_resolve_class_id(model)],
         conf=conf,
         verbose=False,
     )

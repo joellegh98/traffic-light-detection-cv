@@ -85,8 +85,19 @@ profile):
 - Weights at `outputs/train_runs/lisa_traffic_light/weights/best.pt` (git-ignored
   like all other outputs - retrain locally with the command above to reproduce)
 
-A pretrained-vs-custom comparison (Phase E5) and the improved-or-not conclusion
-(Phase E6) are still to come.
+**Pretrained vs. custom comparison (Phase E5)** — `python -m tools.compare_detectors`,
+run on the held-out val clips only (`dayClip7`, `nightClip1` - never seen during
+training), matching predictions to ground truth by IoU>=0.3:
+
+| Model | Recall | Precision |
+|---|---|---|
+| Pretrained (`yolov8n.pt`) | 0.783 | 0.774 |
+| Custom (`best.pt`) | 0.585 | 0.923 |
+
+The custom model is far more precise (fewer false positives) but misses more real
+lights than pretrained - with only 511 training images and 15 epochs, it learned to
+be conservative rather than to generalize broadly. The improved-or-not conclusion
+(Phase E6) is still to come.
 
 ## Data
 

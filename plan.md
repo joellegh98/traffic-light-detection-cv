@@ -178,7 +178,7 @@ is a valid, reportable result.
 - [x] E3. `configs/data.yaml` (train/val paths, one class) + a train profile
   (epochs / imgsz 640 / device).
 - [x] E4. Train; capture the `best.pt` path and metrics.
-- [ ] E5. Re-run Phase D with pretrained **and** `best.pt`; compare.
+- [x] E5. Re-run Phase D with pretrained **and** `best.pt`; compare.
 - [ ] E6. Record the conclusion: custom improved results, or pretrained was enough.
 
 **Verify.** Detection is clearly better than pretrained, or you've documented it
