@@ -229,7 +229,7 @@ with real numbers. Commit.
 **Concept.** One command runs everything, so the project is reproducible.
 
 **Tasks.**
-- [ ] H1. `main.py` runs: pipeline over images → `results.csv` → evaluation → plots.
+- [x] H1. `main.py` runs: pipeline over images → `results.csv` → evaluation → plots.
 - [ ] H2. Model-selection option (pretrained vs `best.pt` path).
 - [ ] H3. Progress logging + a final summary of where outputs were written.
 - [ ] H4. Graceful messages for missing dataset / model / file issues.
