@@ -1,0 +1,14 @@
+# YOLO dataset config for the custom-trained traffic-light detector (Phase E).
+#
+# `path` is resolved relative to the current working directory at train
+# time, NOT relative to this file's own location - confirmed empirically
+# (Ultralytics 8.4.128). tools/train.py always launches from the project
+# root, so this is relative to the repo root.
+path: data/yolo_dataset
+train: images/train
+val: images/val
+
+# Single class throughout: Phase B's HSV classifier handles color, so the
+# detector only ever needs to learn "is this a traffic light".
+names:
+  0: traffic_light

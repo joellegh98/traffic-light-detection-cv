@@ -175,7 +175,7 @@ is a valid, reportable result.
   from video, so neighboring frames are near-duplicates; a random split leaks almost
   identical images into both sets and inflates your accuracy. Split so all frames from
   one sequence stay on one side.
-- [ ] E3. `configs/data.yaml` (train/val paths, one class) + a train profile
+- [x] E3. `configs/data.yaml` (train/val paths, one class) + a train profile
   (epochs / imgsz 640 / device).
 - [ ] E4. Train; capture the `best.pt` path and metrics.
 - [ ] E5. Re-run Phase D with pretrained **and** `best.pt`; compare.
