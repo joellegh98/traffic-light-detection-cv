@@ -111,7 +111,7 @@ before detection, so you trust it later.
   `None` crops. Convert to HSV, mask hue-in-range **and** bright pixels per color,
   count, highest wins; below the minimum count → `"unknown"`.
 - [x] B3. A quick manual-validation script for three representative crops.
-- [ ] B4. Tune the Value floor and minimum pixels to suppress housing/background.
+- [x] B4. Tune the Value floor and minimum pixels to suppress housing/background.
 
 **Verify.** Three hand-cropped test images (one per color) are each labeled
 correctly. Commit.
