@@ -148,7 +148,7 @@ CSV, so the heavy detection pass and the light analysis passes stay cleanly sepa
 **Tasks.**
 - [x] D1. In `pipeline.py`, loop over the dataset images; for each, detect boxes and
   classify each crop's color.
-- [ ] D2. Write one CSV row per detected box: `image_name, x1, y1, x2, y2,
+- [x] D2. Write one CSV row per detected box: `image_name, x1, y1, x2, y2,
   predicted_color, confidence`. Use Python's built-in `csv` module.
 - [ ] D3. Save to `outputs/results.csv`; print a count of images processed and boxes
   found.

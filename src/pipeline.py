@@ -1,5 +1,6 @@
 """Run detect + color over the full image set and write results.csv."""
 
+import csv
 from pathlib import Path
 
 import cv2
@@ -8,6 +9,8 @@ from src.color import classify_color
 from src.detect import detect_traffic_lights
 
 DATASET_ROOT = Path("data/lisa")
+
+CSV_FIELDNAMES = ["image_name", "x1", "y1", "x2", "y2", "predicted_color", "confidence"]
 
 # Clip/sequence frame folders that have matching ground-truth annotations.
 # The two sample-* folders are excluded: they carry no Annotations/ labels,
@@ -58,3 +61,14 @@ def process_image(image_path, model):
             }
         )
     return rows
+
+
+def write_results_csv(rows, output_path):
+    """Write detection+color rows (as produced by process_image) to a flat
+    CSV file, one row per detected box."""
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=CSV_FIELDNAMES)
+        writer.writeheader()
+        writer.writerows(rows)
