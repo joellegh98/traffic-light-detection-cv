@@ -49,15 +49,26 @@ Once Phase H is complete, the full pipeline will run as:
 python -m src.main --data data/<dataset_folder>
 ```
 
-## Expected outputs *(coming soon)*
+## Expected outputs
 
-Running the pipeline will produce:
+Running the pipeline produces:
 - `outputs/results.csv` — one row per detected box (`image_name, x1, y1, x2, y2,
   predicted_color, confidence`)
-- printed detection precision/recall and a color confusion matrix
-- `outputs/color_counts.png` — bar chart of predicted count per color
-- `outputs/confusion_matrix.png` — confusion-matrix heatmap
+- printed detection precision/recall and a color confusion matrix *(coming soon,
+  Phase F)*
+- `outputs/color_counts.png` — bar chart of predicted count per color *(coming
+  soon, Phase G)*
+- `outputs/confusion_matrix.png` — confusion-matrix heatmap *(coming soon, Phase G)*
 - a saved grid of a few annotated example images (correct and incorrect)
+  *(coming soon, Phase G)*
+
+**Current `results.csv` scope:** to keep iteration fast on a CPU-only machine (the
+full ~43k-image dataset takes roughly an hour), this run covers a capped subset —
+`dayClip1`, `dayClip5`, `dayClip7`, `nightClip1`, `nightClip2` — sampled every 5th
+frame per clip (`stride=5` in `run_pipeline`) so each clip's full color-state range
+is still represented, not just its first few seconds. 2,090 images processed, 6,795
+boxes found. A full-dataset run can be done later (e.g. before final submission) by
+calling `run_pipeline()` with its defaults.
 
 ## Data
 

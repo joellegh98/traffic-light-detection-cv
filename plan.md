@@ -150,7 +150,7 @@ CSV, so the heavy detection pass and the light analysis passes stay cleanly sepa
   classify each crop's color.
 - [x] D2. Write one CSV row per detected box: `image_name, x1, y1, x2, y2,
   predicted_color, confidence`. Use Python's built-in `csv` module.
-- [ ] D3. Save to `outputs/results.csv`; print a count of images processed and boxes
+- [x] D3. Save to `outputs/results.csv`; print a count of images processed and boxes
   found.
 
 **Verify.** `results.csv` exists with a plausible row count and readable rows.

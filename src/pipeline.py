@@ -1,12 +1,13 @@
 """Run detect + color over the full image set and write results.csv."""
 
 import csv
+import time
 from pathlib import Path
 
 import cv2
 
 from src.color import classify_color
-from src.detect import detect_traffic_lights
+from src.detect import detect_traffic_lights, load_model
 
 DATASET_ROOT = Path("data/lisa")
 
@@ -27,11 +28,17 @@ LABELED_CLIP_DIRS = (
 )
 
 
-def iter_dataset_images(clip_dirs=LABELED_CLIP_DIRS):
-    """Yield every .jpg path under the given clip frame directories, in
-    stable order (LISA's zero-padded frame numbers sort correctly as text)."""
+def iter_dataset_images(clip_dirs=LABELED_CLIP_DIRS, stride=1):
+    """Yield .jpg paths under the given clip frame directories, in stable
+    order (LISA's zero-padded frame numbers sort correctly as text).
+
+    `stride` > 1 samples every Nth frame *within each clip* rather than every
+    frame - e.g. for a capped run that still spans each clip's full duration
+    (and therefore its full range of light colors/states) instead of only
+    covering its first few seconds.
+    """
     for clip_dir in clip_dirs:
-        for image_path in sorted(clip_dir.glob("*.jpg")):
+        for image_path in sorted(clip_dir.glob("*.jpg"))[::stride]:
             yield image_path
 
 
@@ -72,3 +79,44 @@ def write_results_csv(rows, output_path):
         writer = csv.DictWriter(f, fieldnames=CSV_FIELDNAMES)
         writer.writeheader()
         writer.writerows(rows)
+
+
+def run_pipeline(
+    clip_dirs=LABELED_CLIP_DIRS,
+    output_path="outputs/results.csv",
+    model=None,
+    progress_every=500,
+    stride=1,
+):
+    """Run detect+color over images under `clip_dirs` (every `stride`-th
+    frame per clip), writing results to `output_path`. Prints periodic
+    progress and a final summary.
+
+    Returns (images_processed, boxes_found).
+    """
+    if model is None:
+        model = load_model()
+
+    all_rows = []
+    images_processed = 0
+    start = time.time()
+
+    for image_path in iter_dataset_images(clip_dirs, stride=stride):
+        all_rows.extend(process_image(image_path, model))
+        images_processed += 1
+        if images_processed % progress_every == 0:
+            elapsed = time.time() - start
+            rate = images_processed / elapsed
+            print(
+                f"  {images_processed} images, {len(all_rows)} boxes so far "
+                f"({rate:.1f} img/s, {elapsed:.0f}s elapsed)"
+            )
+
+    write_results_csv(all_rows, output_path)
+
+    elapsed = time.time() - start
+    print(
+        f"Done: {images_processed} images processed, {len(all_rows)} boxes found "
+        f"in {elapsed:.0f}s -> {output_path}"
+    )
+    return images_processed, len(all_rows)
