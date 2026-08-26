@@ -47,7 +47,26 @@ configs/
   data.yaml     YOLO dataset config used by tools/train.py (Phase E3)
 data/       dataset images + labels (git-ignored, not committed)
 outputs/    results.csv, plots, trained weights (git-ignored, not committed)
+input/      10 sample images + detected/ annotated output (committed - see below)
 ```
+
+## Quick demo (no dataset download needed)
+
+`input/` has 10 sample images committed to the repo (a curated pick from LISA -
+day and night, all three colors, chosen using Phase F's own evaluation data so
+they're frames the detector is known to read correctly, not a random gamble).
+Unlike `data/lisa/`, these don't require downloading anything.
+
+```
+python -m tools.detect_input_samples
+```
+
+Runs the pretrained detector + color classifier (the same `annotate_image()`
+Phase C3 uses) over every image in `input/` and saves annotated copies - boxes
+and color labels drawn on - to `input/detected/`.
+
+*(These 10 frames are sourced from the LISA Traffic Light Dataset - see
+[Data](#data) below for the full dataset and its citation.)*
 
 ## Running the pipeline
 
